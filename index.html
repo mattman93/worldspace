@@ -243,6 +243,7 @@ $("#pickspot").click(function(event){
  });
 $("#typed_addr").click(function(event){
   event.preventDefault();
+  $("#post").hide();
   var addr = $("#AddressRegister").val();
   codeAddress(addr);
 });
