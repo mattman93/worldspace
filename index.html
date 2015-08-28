@@ -1,6 +1,6 @@
  <html>
  <body>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Latest compiled and minified CSS -->
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -156,7 +156,7 @@ $(document).ready(function(){
   var map;
   var global_lat;
   var global_longi;
-	var socket  = io.connect();
+	var socket  = io.connect("http://localhost:8080");
   var gpp;
   var global_origin;
   var post_address;
@@ -267,7 +267,9 @@ $("#make_post").click(function(event){
   $("#post").show();
 });
 socket.on("add_post_to_map", function(user, content, lat, longi, address){
-var post_position = new google.maps.LatLng(lat, longi);
+  var post_lat = parseInt(lat);
+  var post_long = parseInt(longi);
+var post_position = new google.maps.LatLng(post_lat, post_long);
 console.log(user);
 console.log(content);
 console.log(lat);
