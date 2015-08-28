@@ -1,5 +1,6 @@
  <html>
  <body>
+  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Latest compiled and minified CSS -->
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -70,21 +71,27 @@
           </div>
         </div>
     </div>
-
-<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="myModal">
-  <div class="modal-dialog modal-sm" id="modal">
+  <!-- Content Modal -->
+<div class="modal fade" id="myModal">
+  <div class="modal-dialog">
     <div class="modal-content">
-      <div class="input-group input-group-lg">
-        <form action="confirmDetails.php" method="POST" id="partySubmit">
-          <span class="input-group-addon" id="sizing-addon1"></span>
-          <div class="input-group">
-           <textarea class="form-control custom-control" rows="3" style="resize:none"></textarea>     
-             <span class="input-group-addon btn btn-primary">Post</span>
-           </div>
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="modal_post_title"></h4>
       </div>
-    </div>
-  </div>
-</div>
+      <div class="modal-body">
+         <textarea class="form-control custom-control" rows="3" cols="30" style="resize:none"></textarea>
+      </div>
+      <div class="modal-footer">
+        <center>
+        <button type="button" class="btn btn-success">Post</button>
+        </center>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
   <div id="map-canvas" style="width: 100%; height: 100%"></div>
 </div>
 </body>
@@ -139,11 +146,8 @@ position: relative;
     opacity: .85;
 }
 </style>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">
-  </script>
 <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false&key=AIzaSyAd_qUj056TQ8botUBBwAoRY8Mm5z4O8Lk&libraries=places"></script>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script src="http://localhost:8080/socket.io/socket.io.js"></script>
 <script>
 $(document).ready(function(){
   var markerExists = false;
@@ -168,6 +172,13 @@ if (navigator.geolocation){
   geolocate();
   navigator.geolocation.getCurrentPosition(showPosition);
 };
+$("#myModal").on("hidden.bs.modal", function(event){
+  if(marker != null){
+    marker.setMap(null);
+    markerExists = false;
+  }
+  $("#post").show();
+});
 socket.on("err_login", function(data){
  $("#error").html(data);
  console.log(data);
@@ -216,6 +227,8 @@ $("#login").hide();
 $("#register").show();
 });
 $("#pickspot").click(function(event){
+   event.preventDefault();
+   $("#post").hide();
    google.maps.event.addListener(map, 'click', function(event){
        placeMarker(event.latLng);
     });
@@ -247,9 +260,9 @@ function placeMarker(location)
     });
     markerExists = true;
      if(marker.visible){
-        $('#myModal').modal('show');
+        $('#myModal').modal();
       console.log(marker.position);
-      codeLatLng(marker.position.k, marker.position.D, 2);
+      codeLatLng(marker.position.G, marker.position.K, 2);
      }
    }
 }
@@ -295,7 +308,7 @@ function codeLatLng(lat, lng, type)
   //Geocoder takes longitude and latitude and sets it to an adress.
   geocoder.geocode({'latLng': latlng}, function(results, status)
   {
-    if (status == google.maps.GeocoderStatus.OK)
+if (status == google.maps.GeocoderStatus.OK)
     {
       if (results[1])
       {
@@ -309,12 +322,14 @@ function codeLatLng(lat, lng, type)
         alert("Geocoder failed due to: " + status);
     }
   });
+  
 } else if(type > 1){
   geocoder.geocode({'latLng': latlng}, function(results, status)
   {
     if (status == google.maps.GeocoderStatus.OK)
     {
         console.log(results[0].formatted_address);
+        $("#modal_post_title").html("<b> Post at " + results[0].formatted_address + "</b>");
     }
     else
     {
