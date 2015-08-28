@@ -44,7 +44,7 @@ function makeSessionSecret()
              socket.emit("err_login", msg);
            } else {
              if(res[1] == password){
-             var msg = "logged in at " + username;
+             var msg = username;
              socket.emit("logged_in", msg);
            } else {
              var msg = "invalid credentials";
@@ -68,11 +68,22 @@ function makeSessionSecret()
           }
        });
      });
-      socket.on("submit_post", function(content, user, global_origin, gpp, post_address){
-         client.hset(post_address, "user", user, "post_content", content, "origin_location", global_origin, "post_location", gpp);
-         //socket.emit("post_complete",)
+      socket.on("submit_post", function(content, user, global_lat, global_longi, post_lat, post_long, post_address){
+         client.rpush(post_address, user, content, global_lat, global_longi, post_lat, post_long);
+         client.lrange(post_address, 0, -1, function(err, res){
+            if(res == null){
+             var msg = "There was an error with your post, please try again";
+             socket.emit("posting error", msg);
+           } else {
+            var user = res[0];
+            var content = res[1];
+            var lat = res[4];
+            var longi = res[5];
+            var address = post_address;
+            socket.emit("add_post_to_map", user, content, lat, longi, address);
+           }
+         });
     
-    });
       });
    	  socket.on("map-loaded", function(){
         console.log("client " + socket.id + " map loaded ");

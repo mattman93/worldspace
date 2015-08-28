@@ -1,6 +1,6 @@
  <html>
  <body>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Latest compiled and minified CSS -->
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -156,7 +156,7 @@ $(document).ready(function(){
   var map;
   var global_lat;
   var global_longi;
-	var socket  = io.connect();
+	var socket  = io.connect("http://localhost:8080");
   var gpp;
   var global_origin;
   var post_address;
@@ -254,8 +254,26 @@ $("#typed_addr").click(function(event){
   codeAddress(addr);
 });
 $("#make_post").click(function(event){
+
   var content = $("#post_cntnt").val();
-  socket.emit("submit_post", content, user, global_origin, gpp, post_address);
+  var post_lat = gpp.lat().toString().substr(0,8);
+  var post_long = gpp.lng().toString().substr(0,8);
+  socket.emit("submit_post", content, user, global_lat, global_longi, post_lat, post_long, post_address);
+ $("#myModal").modal('hide');
+  $("#post_cntnt").val("");
+  if($("#AddressRegister").val().length > 0){
+    $("#AddressRegister").val("");
+  }
+  $("#post").show();
+});
+socket.on("add_post_to_map", function(user, content, lat, longi, address){
+var post_position = new google.maps.LatLng(lat, longi);
+console.log(user);
+console.log(content);
+console.log(lat);
+console.log(longi);
+console.log(address);
+  place_perm_marker(post_position, user, content);
 });
 function showPosition(position){
   if(position.coords == undefined){} else {
@@ -263,7 +281,6 @@ function showPosition(position){
      global_longi = position.coords.longitude.toString().substr(0,8);
      console.log("lat " + global_lat);
      console.log("long " + global_longi);
-    //socket.emit()
     var mapOptions = {
       center : new google.maps.LatLng(global_lat,global_longi),
       zoom : 15,
@@ -275,6 +292,17 @@ function showPosition(position){
     global_origin = latlng;
     google.maps.event.addDomListener(window, 'load', showPosition);
   }
+}
+function place_perm_marker(position, title, content){
+    var marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        title: title,
+      });
+     map.setCenter(marker.getPosition());
+        var infowindow = new google.maps.InfoWindow({
+           content: content
+                });
 }
 function placeMarker(location, called_from)
 {
