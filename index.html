@@ -1,0 +1,328 @@
+ <html>
+ <body>
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <!-- Latest compiled and minified CSS -->
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+ <!-- Latest compiled and minified JavaScript -->
+ <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+   <div id ="infowell" class="well well-lg">
+    <center><div>
+  <b>Welcome to WorldSpace</b></div><div>
+     <a href="" id="closeinfo">
+     Close <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></div>
+     </center>
+ </div>
+ <div id="error"></div>
+ 	<div id="login">
+ 	  <div class="col-sm-4">
+          <div id ="loginwell" class="well well-lg">
+            <center>
+                <div class="form-group">
+                  <form role="form" id="login_usr" method="POST">
+                  <label for="UserNameLogin">Username</label>
+                  <input type="text" name="UserNameLogin" class="form-control" id="UserNamelogin" placeholder="Username"></input>
+                  <br>
+                  <label for="PassWordLogin">Password</label>
+                  <input type="text" name="PassWordLogin" class="form-control" id="PassWordLogin" placeholder="Password"></input>
+                  <br>
+                 <input class="btn btn-success" type="submit" style="height:35px; width:65px" value="login" id="LoginBttn"></input><br><br>
+            </form>
+            </div>
+            Need an Account? <a href="#" class="register_select">Register here </a>
+         	</div>
+         </div>
+     </div>
+  <div id="register">
+    <div class="col-sm-4">
+         <div id ="registerwell" class="well well-lg">
+           <center>
+               <div class="form-group">
+                 <form role="form" id="register_usr" method="POST">
+                 <label for="UserNameRegister">Username</label>
+                 <input type="text" name = "UserNameLogin" class="form-control" id="UserNameRegister" placeholder="Username"></input>
+                 <br>
+                 <label for="PassWordRegister">Password</label>
+                 <input type="text" name = "PassWordRegister" class="form-control" id="PassWordRegister" placeholder="Password"></input>
+                 <br>
+                 <label for="PassWordRegisterRetype">Retype Password</label>
+                 <input type="text" name = "PassWordRegisterRetype" class="form-control" id="PassWordRegisterRetype" placeholder="Password"></input>
+                 <br>
+                 <label for="EmailRegister">Email</label>
+                 <input type="text" name = "EmailRegister" class="form-control" id="EmailRegister" placeholder="Email"></input>
+                 <br>
+                <input class ="btn btn-success" type="submit" style="height:35px; width:75px" value="Register" id="RegisterBttn"></input><br><br>
+            </form>
+            </div>
+            already have an account? <a href="" class="login_select">Login here </a>
+          </div>
+        </div>
+    </div>
+  <div id="post">
+    <div class="col-sm-4">
+       <div id ="registerwell" class="well well-lg">
+         <div class="form-group">
+          <form role="form" id="post_form" method="POST">
+            <label for="AddressRegister">Type a location for your post</label>
+              <input type="text" name = "AddressRegister" class="form-control" id="AddressRegister" placeholder="Location"></input><br>
+              <input class="btn btn-success" type="submit" style="height:35px; width:190px" value="Or pick a spot on the map!" id="pickspot"></input><br><br>
+            </form>
+            </div>
+          </div>
+        </div>
+    </div>
+
+<div class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="myModal">
+  <div class="modal-dialog modal-sm" id="modal">
+    <div class="modal-content">
+      <div class="input-group input-group-lg">
+        <form action="confirmDetails.php" method="POST" id="partySubmit">
+          <span class="input-group-addon" id="sizing-addon1"></span>
+          <div class="input-group">
+           <textarea class="form-control custom-control" rows="3" style="resize:none"></textarea>     
+             <span class="input-group-addon btn btn-primary">Post</span>
+           </div>
+      </div>
+    </div>
+  </div>
+</div>
+  <div id="map-canvas" style="width: 100%; height: 100%"></div>
+</div>
+</body>
+</html>
+<style type="text/css">
+#login {
+  position: relative;
+  z-index: 1; /* The z-index should be higher than Google Maps */
+  opacity: .85; /* Set the opacity for a slightly transparent Google Form */
+  width: 1000;
+  top: 80 ;
+  margin-left: 530 ;
+  margin-right: 20 ;
+}
+#post {
+  display: none;
+  position: relative;
+  z-index: 1; /* The z-index should be higher than Google Maps */
+  opacity: .95; /* Set the opacity for a slightly transparent Google Form */
+  width: 1000;
+  top: 80 ;
+  margin-left: 530 ;
+  margin-right: 20 ;
+}
+#register {
+  display: none;
+  position: relative;
+  z-index: 1; /* The z-index should be higher than Google Maps */
+  opacity: .85; /* Set the opacity for a slightly transparent Google Form */
+  width: 1000;
+  top: 40 ;
+  margin-left: 530 ;
+  margin-right: 20 ;
+}
+#map-canvas {
+  height: 100%;
+  width: 100%;
+  position:absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+#error {
+left: 50%;
+ top: 40 ;
+position: relative;
+  z-index: 1;
+}
+#infowell {
+   position: relative;
+    z-index: 1; /* The z-index should be higher than Google Maps */
+    opacity: .85;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js">
+  </script>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false&key=AIzaSyAd_qUj056TQ8botUBBwAoRY8Mm5z4O8Lk&libraries=places"></script>
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script src="http://localhost:8080/socket.io/socket.io.js"></script>
+<script>
+$(document).ready(function(){
+  var markerExists = false;
+  var marker;
+	var socket  = io.connect('http://localhost:8080');
+  var $error = $("#error");
+
+navigator.geolocation.watchPosition(function(position) {
+console.log("loc enabled");
+//enable user controls if location enabled
+$("#UserNameLogin").prop("disabled", false);
+$("#PassWordLogin").prop("disabled", false);
+$("#LoginBttn").prop('disabled', false);
+    },
+    function (error) {
+        if (error.code == error.PERMISSION_DENIED)
+         console.log("location blocked");
+         $error.html("You must allow your browsers geolocation");
+         $("#LoginBttn").prop('disabled', true);
+      });
+if (navigator.geolocation){
+  geolocate();
+  navigator.geolocation.getCurrentPosition(showPosition);
+};
+socket.on("err_login", function(data){
+ $("#error").html(data);
+ console.log(data);
+});
+socket.on("reg_err", function(data){
+$("#error").html(data);
+console.log(data);
+});
+socket.on("logged_in", function(data){
+$("#error").html(data);
+$("#login").hide();
+$("#post").show();
+console.log(data);
+});
+socket.on("account_created", function(data){
+$("#error").html(data);
+console.log(data);
+});
+$("#login_usr").submit(function(event){
+event.preventDefault();
+var usename = $("#UserNamelogin").val().trim();
+var password =$("#PassWordLogin").val();
+console.log(usename);
+socket.emit("login", usename, password);
+});
+$("#register_usr").submit(function(event){
+  event.preventDefault();
+var usename = $("#UserNameRegister").val();
+var password =$("#PassWordRegister").val();
+var password2 = $("#PassWordRegisterRetype").val();
+var email = $("#EmailRegister").val();
+if(password == password2){
+socket.emit("register", usename, password, email);
+} else {
+  $("#error").html("<b>password mismatch</b>");
+}
+});
+$(".login_select").click(function(event){
+event.preventDefault();
+$("#register").hide();
+$("#login").show();
+});
+$(".register_select").click(function(event){
+event.preventDefault();
+$("#login").hide();
+$("#register").show();
+});
+$("#pickspot").click(function(event){
+   google.maps.event.addListener(map, 'click', function(event){
+       placeMarker(event.latLng);
+    });
+ });
+function showPosition(position){
+  if(position.coords == undefined){} else {
+     lat = position.coords.latitude.toString().substr(0,8);
+     longi = position.coords.longitude.toString().substr(0,8);
+     console.log("lat " + lat);
+     console.log("long " + longi);
+    //socket.emit()
+    var mapOptions = {
+      center : new google.maps.LatLng(lat,longi),
+      zoom : 15,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    }
+     map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+     socket.emit("map-loaded");
+    var latlng = new google.maps.LatLng(lat,longi);
+    google.maps.event.addDomListener(window, 'load', showPosition);
+  }
+}
+function placeMarker(location)
+{
+   if(markerExists){} else {
+     marker = new google.maps.Marker({
+        position: location,
+        map: map,
+    });
+    markerExists = true;
+     if(marker.visible){
+        $('#myModal').modal('show');
+      console.log(marker.position);
+      codeLatLng(marker.position.k, marker.position.D, 2);
+     }
+   }
+}
+function geolocate() {
+          var input = document.getElementById('AddressRegister');
+          var optns = {
+              types: ['address']
+          };
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+            var geolocation = new google.maps.LatLng(
+                position.coords.latitude, position.coords.longitude);
+                ac = new google.maps.places.Autocomplete(input, optns).setBounds(new google.maps.LatLngBounds(geolocation, geolocation));
+            });
+          }
+        }
+function codeAddress(addr)
+{
+  var geocoder;
+  geocoder = new google.maps.Geocoder();
+  geocoder.geocode( { 'address': addr}, function(results, status)
+  {
+    if (status == google.maps.GeocoderStatus.OK)
+    {
+      console.log(results[0].geometry.location);
+      var lat = results[0].geometry.location.k;
+      var longi = results[0].geometry.location.D;
+      codeLatLng(lat,longi,1);
+    }
+    else
+    {
+        alert("Geocode was not successful for the following reason: " + status);
+    }
+  });
+}
+
+function codeLatLng(lat, lng, type)
+{
+   var geocoder;
+  geocoder = new google.maps.Geocoder();
+  var latlng = new google.maps.LatLng(lat, lng);
+  if(type == 1){
+  //Geocoder takes longitude and latitude and sets it to an adress.
+  geocoder.geocode({'latLng': latlng}, function(results, status)
+  {
+    if (status == google.maps.GeocoderStatus.OK)
+    {
+      if (results[1])
+      {
+        console.log(results[1].formatted_address);
+        var town = results[1].formatted_address.split(",",1);
+        console.log(town);
+      }
+    }
+    else
+    {
+        alert("Geocoder failed due to: " + status);
+    }
+  });
+} else if(type > 1){
+  geocoder.geocode({'latLng': latlng}, function(results, status)
+  {
+    if (status == google.maps.GeocoderStatus.OK)
+    {
+        console.log(results[0].formatted_address);
+    }
+    else
+    {
+        alert("Geocoder failed due to: " + status);
+    }
+  });
+}
+}
+// close document.ready
+    });
+</script>
