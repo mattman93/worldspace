@@ -68,6 +68,12 @@ function makeSessionSecret()
           }
        });
      });
+      socket.on("submit_post", function(content, user, global_origin, gpp, post_address){
+         client.hset(post_address, "user", user, "post_content", content, "origin_location", global_origin, "post_location", gpp);
+         //socket.emit("post_complete",)
+    
+    });
+      });
    	  socket.on("map-loaded", function(){
         console.log("client " + socket.id + " map loaded ");
       });
