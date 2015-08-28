@@ -1,6 +1,6 @@
  <html>
  <body>
-  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Latest compiled and minified CSS -->
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -62,11 +62,12 @@
     <div class="col-sm-4">
        <div id ="registerwell" class="well well-lg">
          <div class="form-group">
-          <form role="form" id="post_form" method="POST">
+          <!--<form role="form" id="post_form" method="POST"> -->
             <label for="AddressRegister">Type a location for your post</label>
               <input type="text" name = "AddressRegister" class="form-control" id="AddressRegister" placeholder="Location"></input><br>
+              <input class="btn btn-success" type="submit" style="height:35px; width:190px" value="Find Address" id="typed_addr"></input><br><br>
               <input class="btn btn-success" type="submit" style="height:35px; width:190px" value="Or pick a spot on the map!" id="pickspot"></input><br><br>
-            </form>
+          <!--  </form> -->
             </div>
           </div>
         </div>
@@ -152,7 +153,10 @@ position: relative;
 $(document).ready(function(){
   var markerExists = false;
   var marker;
-	var socket  = io.connect('http://localhost:8080');
+  var map;
+  var global_lat;
+  var global_longi;
+	var socket  = io.connect();
   var $error = $("#error");
 
 navigator.geolocation.watchPosition(function(position) {
@@ -177,6 +181,10 @@ $("#myModal").on("hidden.bs.modal", function(event){
     marker.setMap(null);
     markerExists = false;
   }
+  google.maps.event.clearListeners(map, 'click');
+  var latlng = new google.maps.LatLng(global_lat,global_longi);
+  map.setCenter(latlng);
+  $("#AddressRegister").val("");
   $("#post").show();
 });
 socket.on("err_login", function(data){
@@ -230,39 +238,50 @@ $("#pickspot").click(function(event){
    event.preventDefault();
    $("#post").hide();
    google.maps.event.addListener(map, 'click', function(event){
-       placeMarker(event.latLng);
+       placeMarker(event.latLng, "clicked");
     });
  });
+$("#typed_addr").click(function(event){
+  event.preventDefault();
+  var addr = $("#AddressRegister").val();
+  codeAddress(addr);
+});
 function showPosition(position){
   if(position.coords == undefined){} else {
-     lat = position.coords.latitude.toString().substr(0,8);
-     longi = position.coords.longitude.toString().substr(0,8);
-     console.log("lat " + lat);
-     console.log("long " + longi);
+     global_lat = position.coords.latitude.toString().substr(0,8);
+     global_longi = position.coords.longitude.toString().substr(0,8);
+     console.log("lat " + global_lat);
+     console.log("long " + global_longi);
     //socket.emit()
     var mapOptions = {
-      center : new google.maps.LatLng(lat,longi),
+      center : new google.maps.LatLng(global_lat,global_longi),
       zoom : 15,
       mapTypeId: google.maps.MapTypeId.ROADMAP
     }
      map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
      socket.emit("map-loaded");
-    var latlng = new google.maps.LatLng(lat,longi);
+    var latlng = new google.maps.LatLng(global_lat,global_longi);
     google.maps.event.addDomListener(window, 'load', showPosition);
   }
 }
-function placeMarker(location)
+function placeMarker(location, called_from)
 {
    if(markerExists){} else {
      marker = new google.maps.Marker({
         position: location,
         map: map,
     });
+    map.setCenter(marker.getPosition());
     markerExists = true;
      if(marker.visible){
         $('#myModal').modal();
       console.log(marker.position);
-      codeLatLng(marker.position.G, marker.position.K, 2);
+      if(called_from != "addr"){
+     //Do nothing ... YET!
+      }
+      if(called_from == "clicked"){
+        codeLatLng(marker.position.G, marker.position.K, 2);
+      }
      }
    }
 }
@@ -288,13 +307,9 @@ function codeAddress(addr)
     if (status == google.maps.GeocoderStatus.OK)
     {
       console.log(results[0].geometry.location);
-      var lat = results[0].geometry.location.k;
-      var longi = results[0].geometry.location.D;
-      codeLatLng(lat,longi,1);
-    }
-    else
-    {
-        alert("Geocode was not successful for the following reason: " + status);
+      var latitude = results[0].geometry.location.G;
+      var longitude = results[0].geometry.location.K;
+      codeLatLng(latitude,longitude,1);
     }
   });
 }
@@ -313,8 +328,10 @@ if (status == google.maps.GeocoderStatus.OK)
       if (results[1])
       {
         console.log(results[1].formatted_address);
+        $("#modal_post_title").html("<b> Post at " + results[0].formatted_address + "</b>");
         var town = results[1].formatted_address.split(",",1);
         console.log(town);
+        placeMarker(latlng, "addr");
       }
     }
     else
