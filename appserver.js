@@ -75,6 +75,10 @@ function makeSessionSecret()
              console("There was an error with your post, please try again");
           //   socket.emit("posting error", msg);
            } else {
+            console.log(res[0]);
+            console.log(res[1]);
+            console.log(res[2]);
+            console.log(res[3]);
             var user_p = res[0];
             var content_p = res[1];
             var lat_p = res[4];
