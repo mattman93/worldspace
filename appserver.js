@@ -71,7 +71,7 @@ function makeSessionSecret()
       socket.on("submit_post", function(content, user, global_lat, global_longi, post_lat, post_long, post_address){
         client.select(1, function() { 
          client.lrange(post_address, 0, -1, function(err, result){
-            if(result != null){
+            if(result !== null){
               var msg = " There's already a post at " + post_address;
              socket.emit("Loc_occupied", msg);
            } else {
