@@ -72,15 +72,15 @@ function makeSessionSecret()
          client.rpush(post_address, user, content, global_lat, global_longi, post_lat, post_long);
          client.lrange(post_address, 0, -1, function(err, res){
             if(res == null){
-             var msg = "There was an error with your post, please try again";
-             socket.emit("posting error", msg);
+             console("There was an error with your post, please try again");
+          //   socket.emit("posting error", msg);
            } else {
-            var user = res[0];
-            var content = res[1];
-            var lat = res[4];
-            var longi = res[5];
-            var address = post_address;
-            socket.emit("add_post_to_map", user, content, lat, longi, address);
+            var user_p = res[0];
+            var content_p = res[1];
+            var lat_p = res[4];
+            var longi_p = res[5];
+            var address_p = post_address;
+            socket.emit("add_post_to_map", user_p, content_p, lat_p, longi_p, address_p);
            }
          });
     
