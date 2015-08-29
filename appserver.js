@@ -69,25 +69,30 @@ function makeSessionSecret()
        });
      });
       socket.on("submit_post", function(content, user, global_lat, global_longi, post_lat, post_long, post_address){
-         client.rpush(post_address, user, content, global_lat, global_longi, post_lat, post_long);
+        client.select(1, function() { 
+         client.lrange(post_address, 0, -1, function(err, result){
+            if(result != null){
+              var msg = " There's already a post at " + post_address;
+             socket.emit("Loc_occupied", msg);
+           } else {
+         client.rpush(post_address, user, content, global_lat, global_longi, post_lat, post_long,  function(err, reply) {
          client.lrange(post_address, 0, -1, function(err, res){
             if(res == null){
              console("There was an error with your post, please try again");
           //   socket.emit("posting error", msg);
            } else {
-            console.log(res[0]);
-            console.log(res[1]);
-            console.log(res[2]);
-            console.log(res[3]);
             var user_p = res[0];
             var content_p = res[1];
             var lat_p = res[4];
             var longi_p = res[5];
             var address_p = post_address;
             socket.emit("add_post_to_map", user_p, content_p, lat_p, longi_p, address_p);
-           }
+                }  
+            });
+          });
+          }
+        });
          });
-    
       });
    	  socket.on("map-loaded", function(){
         console.log("client " + socket.id + " map loaded ");
