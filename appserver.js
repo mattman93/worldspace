@@ -35,29 +35,28 @@ function makeSessionSecret()
         text += possible.charAt(Math.floor(Math.random() * possible.length));
 
     return text;
-}
+          }
      io.sockets.on('connection', function(socket){
        socket.on("login", function(username, password){
+      client.select(0, function(){ 
         client.lrange(username, 0, -1, function(err, res){
-           if(res == null){
+           if(res.length < 1){
              var msg = "we don't have a user by that name";
              socket.emit("err_login", msg);
            } else {
-             if(res[1] == password){
-             var msg = username;
-             socket.emit("logged_in", msg);
-           } else {
-             var msg = "invalid credentials";
-             socket.emit("err_login", msg);
-            }
+             if(res[1] == password) {
+                 var msg = username;
+                 socket.emit("logged_in", msg);
+              } else {
+                 var msg = "invalid credentials";
+                 socket.emit("err_login", msg);
+                }
            }
          });
+        });
        });
        socket.on("register", function(username, password, email){
         client.lrange(username, 0, -1, function(err, res){
-          console.log(username);
-          console.log(password);
-          console.log(email);
           if(res == null || res.length == 0 || res == ""){
             client.rpush(username, username, password, email);
             var msg = "account created for " + username;
@@ -71,9 +70,9 @@ function makeSessionSecret()
       socket.on("submit_post", function(content, user, global_lat, global_longi, post_lat, post_long, post_address){
         client.select(1, function() { 
          client.lrange(post_address, 0, -1, function(err, result){
-            if(result !== null){
-              var msg = " There's already a post at " + post_address;
-             socket.emit("Loc_occupied", msg);
+            if(result.length > 1){
+              console.log(" There's already a post at " + post_address);
+             //socket.emit("Loc_occupied", msg);
            } else {
          client.rpush(post_address, user, content, global_lat, global_longi, post_lat, post_long,  function(err, reply) {
          client.lrange(post_address, 0, -1, function(err, res){
@@ -86,15 +85,26 @@ function makeSessionSecret()
             var lat_p = res[4];
             var longi_p = res[5];
             var address_p = post_address;
-            socket.emit("add_post_to_map", user_p, content_p, lat_p, longi_p, address_p);
+            io.sockets.emit("add_post_to_map", user_p, content_p, lat_p, longi_p, address_p);
                 }  
             });
           });
           }
         });
-         });
+        });
       });
-   	  socket.on("map-loaded", function(){
-        console.log("client " + socket.id + " map loaded ");
+   	socket.on("map-loaded", function(){
+      console.log("client " + socket.id + " map loaded ");
+        client.select(1, function() { 
+          client.keys("*", function (err, all_keys) {  
+            for(var i=0; i<all_keys.length; i++){   
+               post_key = all_keys[i]; 
+               client.lrange(post_key.toString(), 0, -1, function(err, res){
+                socket.emit("send_posts", res);
+               
+               });
+              } 
+         });
+        });
       });
    	});

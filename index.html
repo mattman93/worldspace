@@ -1,6 +1,6 @@
  <html>
  <body>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Latest compiled and minified CSS -->
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -156,13 +156,26 @@ $(document).ready(function(){
   var map;
   var global_lat;
   var global_longi;
-	var socket  = io.connect();
+	var socket  = io.connect("http://localhost:8080");
   var gpp;
   var global_origin;
   var post_address;
   var user;
   var $error = $("#error");
 
+socket.on("send_posts", function(dataArr){
+  if(dataArr.length > 0){
+      for(var i=0; i < dataArr.length; i++){
+        var latit =  parseFloat(dataArr[4]);
+        var longit =  parseFloat(dataArr[5]);
+          var ltlng = new google.maps.LatLng(latit,longit);
+          var title = dataArr[0];
+          var content = dataArr[1];
+           var marker = place_perm_marker(ltlng, title, content);
+     
+        }
+      } 
+    }); 
 navigator.geolocation.watchPosition(function(position) {
 console.log("loc enabled");
 //enable user controls if location enabled
@@ -213,7 +226,7 @@ console.log(data);
 });
 $("#login_usr").submit(function(event){
 event.preventDefault();
-var usename = $("#UserNamelogin").val().trim();
+var usename = $("#UserNamelogin").val();
 var password =$("#PassWordLogin").val();
 console.log(usename);
 socket.emit("login", usename, password);
@@ -322,7 +335,7 @@ function placeMarker(location, called_from)
      if(marker.visible){
         $('#myModal').modal();
       console.log(marker.position);
-      if(called_from != "addr"){
+      if(called_from == "addr"){
      //Do nothing ... YET!
       }
       if(called_from == "clicked"){
