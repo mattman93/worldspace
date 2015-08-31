@@ -56,6 +56,7 @@ function makeSessionSecret()
         });
        });
        socket.on("register", function(username, password, email){
+         client.select(0, function(){ 
         client.lrange(username, 0, -1, function(err, res){
           if(res == null || res.length == 0 || res == ""){
             client.rpush(username, username, password, email);
@@ -66,25 +67,26 @@ function makeSessionSecret()
             socket.emit("reg_err", msg);
           }
        });
+      });
      });
       socket.on("submit_post", function(content, user, global_lat, global_longi, post_lat, post_long, post_address){
-        client.select(1, function() { 
-         client.lrange(post_address, 0, -1, function(err, result){
+        client.select(1, function() {
+        var key_to_store = post_lat.toString() + ":" + post_long.toString(); 
+         client.lrange(key_to_store, 0, -1, function(err, result){
             if(result.length > 1){
               console.log(" There's already a post at " + post_address);
              //socket.emit("Loc_occupied", msg);
            } else {
-         client.rpush(post_address, user, content, global_lat, global_longi, post_lat, post_long,  function(err, reply) {
-         client.lrange(post_address, 0, -1, function(err, res){
+         client.rpush(key_to_store, user, content, global_lat, global_longi, post_lat, post_long, post_address, function(err, reply) {
+         client.lrange(key_to_store, 0, -1, function(err, res){
             if(res == null){
-             console("There was an error with your post, please try again");
-          //   socket.emit("posting error", msg);
+            //   socket.emit("posting error", msg);
            } else {
             var user_p = res[0];
             var content_p = res[1];
             var lat_p = res[4];
             var longi_p = res[5];
-            var address_p = post_address;
+            var address_p = res[6];
             io.sockets.emit("add_post_to_map", user_p, content_p, lat_p, longi_p, address_p);
                 }  
             });
@@ -100,8 +102,7 @@ function makeSessionSecret()
             for(var i=0; i<all_keys.length; i++){   
                post_key = all_keys[i]; 
                client.lrange(post_key.toString(), 0, -1, function(err, res){
-                socket.emit("send_posts", res);
-               
+                socket.emit("send_posts", res); 
                });
               } 
          });

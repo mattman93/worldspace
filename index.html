@@ -314,7 +314,9 @@ function place_perm_marker(position, title, content){
         map: map,
         title: title,
       });
-     map.setCenter(marker.getPosition());
+    if(title == user){
+        map.setCenter(marker.getPosition());
+      }
         var infowindow = new google.maps.InfoWindow({
            content: content
                 });
@@ -394,10 +396,6 @@ if (status == google.maps.GeocoderStatus.OK)
         placeMarker(latlng, "addr");
       }
     }
-    else
-    {
-        alert("Geocoder failed due to: " + status);
-    }
   });
   
 } else if(type > 1){
@@ -408,10 +406,6 @@ if (status == google.maps.GeocoderStatus.OK)
         console.log(results[0].formatted_address);
         $("#modal_post_title").html("<b> Post at " + results[0].formatted_address + "</b>");
          post_address =  results[0].formatted_address;
-    }
-    else
-    {
-        alert("Geocoder failed due to: " + status);
     }
   });
 }
