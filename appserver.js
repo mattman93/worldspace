@@ -55,11 +55,11 @@ function makeSessionSecret()
          });
         });
        });
-       socket.on("register", function(username, password, email){
+       socket.on("register", function(username, password){
          client.select(0, function(){ 
         client.lrange(username, 0, -1, function(err, res){
           if(res == null || res.length == 0 || res == ""){
-            client.rpush(username, username, password, email);
+            client.rpush(username, username, password);
             var msg = "account created for " + username;
             socket.emit("account_created", msg);
           } else {
@@ -95,6 +95,23 @@ function makeSessionSecret()
         });
         });
       });
+  socket.on("stats", function(user){
+    var posts = 0;
+       client.select(1, function() { 
+          client.keys("*", function (err, all_keys) {  
+            for(var i=0; i<all_keys.length; i++){   
+               post_key = all_keys[i]; 
+               client.lrange(post_key.toString(), 0, -1, function(err, res){
+                if(res[0] == user){
+                  posts++;
+                  console.log(res[0]);
+                }
+               });
+              } 
+         });
+          socket.emit("show_stats", posts);
+        });
+  });
    	socket.on("map-loaded", function(){
       console.log("client " + socket.id + " map loaded ");
         client.select(1, function() { 

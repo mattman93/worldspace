@@ -1,6 +1,6 @@
  <html>
  <body>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Latest compiled and minified CSS -->
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -33,6 +33,15 @@
          	</div>
          </div>
      </div>
+      <div id="usr_dashboard">
+       <div class="well well-lg">
+        <div class="page-header">
+           <h1><div id="usr_name"></div> <small><div id="usr_stats"></div></small></h1>
+          </div>
+         <input class ="btn btn-success" type="submit" style="height:35px; width:275px" value="Explore" id="explr"></input><br>
+          <input class ="btn btn-success" type="submit" style="height:35px; width:275px" value="Make Post" id="mkpost"></input><br><br>
+      </div>
+        </div>
   <div id="register">
     <div class="col-sm-4">
          <div id ="registerwell" class="well well-lg">
@@ -47,9 +56,6 @@
                  <br>
                  <label for="PassWordRegisterRetype">Retype Password</label>
                  <input type="text" name = "PassWordRegisterRetype" class="form-control" id="PassWordRegisterRetype" placeholder="Password"></input>
-                 <br>
-                 <label for="EmailRegister">Email</label>
-                 <input type="text" name = "EmailRegister" class="form-control" id="EmailRegister" placeholder="Email"></input>
                  <br>
                 <input class ="btn btn-success" type="submit" style="height:35px; width:75px" value="Register" id="RegisterBttn"></input><br><br>
             </form>
@@ -68,6 +74,8 @@
               <input class="btn btn-success" type="submit" style="height:35px; width:190px" value="Find Address" id="typed_addr"></input><br><br>
               <input class="btn btn-success" type="submit" style="height:35px; width:190px" value="Or pick a spot on the map!" id="pickspot"></input><br><br>
           <!--  </form> -->
+          <br>
+          <a href="#" class="dashboard"> dashboard </a>
             </div>
           </div>
         </div>
@@ -146,6 +154,16 @@ position: relative;
     z-index: 1; /* The z-index should be higher than Google Maps */
     opacity: .85;
 }
+#usr_dashboard{
+   display: none;
+  position: relative;
+  z-index: 1;
+  opacity: .95; /* Set the opacity for a slightly transparent Google Form */
+  width: 500;
+  top: 80 ;
+  margin-left: 530 ;
+  margin-right: 530 ;
+}
 </style>
 <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false&key=AIzaSyAd_qUj056TQ8botUBBwAoRY8Mm5z4O8Lk&libraries=places"></script>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
@@ -156,11 +174,12 @@ $(document).ready(function(){
   var map;
   var global_lat;
   var global_longi;
-	var socket  = io.connect();
+	var socket  = io.connect("http://localhost:8080/");
   var gpp;
   var global_origin;
   var post_address;
   var user;
+  var range;
   var $error = $("#error");
 
 socket.on("send_posts", function(dataArr){
@@ -216,12 +235,21 @@ console.log(data);
 socket.on("logged_in", function(data){
 $("#error").html(data);
 $("#login").hide();
-$("#post").show();
 user = data;
-console.log(data);
+$("#usr_name").html(user);
+console.log(user);
+socket.emit("stats", user);
+socket.on("show_stats", function(usrr){
+  console.log(usrr);
+  $("#usr_stat").html(usrr);
+})
+$("#usr_dashboard").show();
+console.log(user);
 });
 socket.on("account_created", function(data){
 $("#error").html(data);
+$("#register").hide();
+$("#login").show();
 console.log(data);
 });
 $("#login_usr").submit(function(event){
@@ -231,14 +259,25 @@ var password =$("#PassWordLogin").val();
 console.log(usename);
 socket.emit("login", usename, password);
 });
+$("#mkpost").click(function(event){
+event.preventDefault();
+$("#usr_dashboard").hide();
+$("#post").show();
+});
+$("#explr").click(function(event){
+  $("#usr_dashboard").hide();
+  });
+$(".dashboard").click(function(event){
+  $("#post").hide();
+  $("#usr_dashboard").show();
+});
 $("#register_usr").submit(function(event){
   event.preventDefault();
 var usename = $("#UserNameRegister").val();
 var password =$("#PassWordRegister").val();
 var password2 = $("#PassWordRegisterRetype").val();
-var email = $("#EmailRegister").val();
 if(password == password2){
-socket.emit("register", usename, password, email);
+socket.emit("register", usename, password);
 } else {
   $("#error").html("<b>password mismatch</b>");
 }
@@ -267,7 +306,8 @@ $("#typed_addr").click(function(event){
   codeAddress(addr);
 });
 $("#make_post").click(function(event){
-
+console.log(range.contains(gpp));
+if(range.contains(gpp)){
   var content = $("#post_cntnt").val();
   var post_lat = gpp.lat().toString().substr(0,8);
   var post_long = gpp.lng().toString().substr(0,8);
@@ -278,6 +318,16 @@ $("#make_post").click(function(event){
     $("#AddressRegister").val("");
   }
   $("#post").show();
+} else {
+  $("#error").html("Post not in range");
+    $("#error").show();
+      $("#post").show();
+}
+$("#myModal").modal('hide');
+  $("#post_cntnt").val("");
+  if($("#AddressRegister").val().length > 0){
+    $("#AddressRegister").val("");
+  }
 });
 socket.on("add_post_to_map", function(user, content, lat, longi, address){
   var post_lat = parseFloat(lat);
@@ -305,6 +355,28 @@ function showPosition(position){
      socket.emit("map-loaded");
     var latlng = new google.maps.LatLng(global_lat,global_longi);
     global_origin = latlng;
+    {
+          var marker = new google.maps.Marker({ 
+            position: latlng, 
+            map: map, 
+            flat: true, 
+            draggable: false 
+         });
+         range = new google.maps.Circle({
+            strokeColor: '#58FA82',
+             strokeOpacity: 0.8,
+              strokeWeight: 2,
+                fillColor: '#58FA82',
+                 fillOpacity: 0.35,
+                  map: map,
+                  center: latlng,
+                   clickable: false,
+                   radius: 600
+    });
+  google.maps.Circle.prototype.contains = function(latLng) {
+  return this.getBounds().contains(latLng) && google.maps.geometry.spherical.computeDistanceBetween(this.getCenter(), latLng) <= this.getRadius();
+}
+      }
     google.maps.event.addDomListener(window, 'load', showPosition);
   }
 }
@@ -313,7 +385,11 @@ function place_perm_marker(position, title, content){
         position: position,
         map: map,
         title: title,
+         flat: true, 
+            draggable: false, 
       });
+        iconFile = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'; 
+        marker.setIcon(iconFile);
     if(title == user){
         map.setCenter(marker.getPosition());
       }
@@ -330,7 +406,11 @@ function placeMarker(location, called_from)
      marker = new google.maps.Marker({
         position: location,
         map: map,
+         flat: true, 
+            draggable: false, 
     });
+              iconFile = 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'; 
+        marker.setIcon(iconFile);
     map.setCenter(marker.getPosition());
     markerExists = true;
     gpp = marker.getPosition();
