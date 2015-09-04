@@ -239,9 +239,8 @@ user = data;
 $("#usr_name").html(user);
 console.log(user);
 socket.emit("stats", user);
-socket.on("show_stats", function(usrr){
-  console.log(usrr);
-  $("#usr_stat").html(usrr);
+socket.on("show_stats", function(usr_posts){
+  $("#usr_stats").html(usr_posts + "<b> Posts </b> ");
 })
 $("#usr_dashboard").show();
 console.log(user);
@@ -269,6 +268,10 @@ $("#explr").click(function(event){
   });
 $(".dashboard").click(function(event){
   $("#post").hide();
+  socket.emit("stats", user);
+  socket.on("show_stats", function(usr_posts){
+  $("#usr_stats").html(usr_posts + "<b> Posts </b> ");
+})
   $("#usr_dashboard").show();
 });
 $("#register_usr").submit(function(event){
@@ -371,7 +374,7 @@ function showPosition(position){
                   map: map,
                   center: latlng,
                    clickable: false,
-                   radius: 600
+                   radius: 300
     });
   google.maps.Circle.prototype.contains = function(latLng) {
   return this.getBounds().contains(latLng) && google.maps.geometry.spherical.computeDistanceBetween(this.getCenter(), latLng) <= this.getRadius();

@@ -56,10 +56,11 @@ function makeSessionSecret()
         });
        });
        socket.on("register", function(username, password){
+        var posts = 0;
          client.select(0, function(){ 
         client.lrange(username, 0, -1, function(err, res){
           if(res == null || res.length == 0 || res == ""){
-            client.rpush(username, username, password);
+            client.rpush(username, username, password, posts);
             var msg = "account created for " + username;
             socket.emit("account_created", msg);
           } else {
@@ -87,29 +88,32 @@ function makeSessionSecret()
             var lat_p = res[4];
             var longi_p = res[5];
             var address_p = res[6];
+              client.select(0, function(){
+             client.lrange(user, 0, -1, function(err, result){
+              var curr = parseInt(result[2]);
+               var updated = curr + 1;
+             client.rpop(user, function(err, res){});
+             client.rpush(user, updated, function(err, response){
+              if(err){
+              console.log(err);
+               //emit error event TODO
+                 }
+                 });          
+             });
+          });
             io.sockets.emit("add_post_to_map", user_p, content_p, lat_p, longi_p, address_p);
                 }  
             });
-          });
+           });
           }
         });
         });
       });
   socket.on("stats", function(user){
-    var posts = 0;
-       client.select(1, function() { 
-          client.keys("*", function (err, all_keys) {  
-            for(var i=0; i<all_keys.length; i++){   
-               post_key = all_keys[i]; 
-               client.lrange(post_key.toString(), 0, -1, function(err, res){
-                if(res[0] == user){
-                  posts++;
-                  console.log(res[0]);
-                }
-               });
-              } 
+       client.select(0, function() { 
+          client.lrange(user, 0, -1, function (err, res) {  
+             socket.emit("show_stats", res[2]);
          });
-          socket.emit("show_stats", posts);
         });
   });
    	socket.on("map-loaded", function(){
