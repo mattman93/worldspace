@@ -97,7 +97,9 @@
       <div class="modal-body">
          <div id="post_content"></div>
       </div>
-      <div class="modal-footer">
+      <br><hr>
+      <div align="left">
+         <input class="btn btn-success" type="submit" style="height:35px; width:100px" align="left" value="comments" id="comments"></input>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -419,7 +421,7 @@ function showPosition(position){
                   map: map,
                   center: latlng,
                    clickable: false,
-                   radius: 300
+                   radius: 150
     });
   google.maps.Circle.prototype.contains = function(latLng) {
   return this.getBounds().contains(latLng) && google.maps.geometry.spherical.computeDistanceBetween(this.getCenter(), latLng) <= this.getRadius();
