@@ -296,13 +296,11 @@ $("#error").html(data);
 $("#login").hide();
 user = data;
 $("#usr_name").html(user);
-console.log(user);
 socket.emit("stats", user);
 socket.on("show_stats", function(usr_posts){
   $("#usr_stats").html(usr_posts + "<b> Posts </b> ");
 })
 $("#usr_dashboard").show();
-console.log(user);
 });
 socket.on("account_created", function(data){
 $("#error").html(data);
@@ -314,7 +312,6 @@ $("#login_usr").submit(function(event){
 event.preventDefault();
 var usename = $("#UserNamelogin").val();
 var password =$("#PassWordLogin").val();
-console.log(usename);
 socket.emit("login", usename, password);
 });
 $("#mkpost").click(function(event){
@@ -503,7 +500,6 @@ function showPosition(position){
   }
 }
 function place_perm_marker(position, title, content, id){
-  console.log(id);
     var marker = new google.maps.Marker({
         position: position,
         map: map,
