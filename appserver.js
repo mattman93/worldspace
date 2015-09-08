@@ -71,6 +71,7 @@ function makeSessionSecret()
       });
      });
       socket.on("submit_post", function(content, user, global_lat, global_longi, post_lat, post_long, post_address){
+        var comments = 0;
         client.select(1, function() {
         var key_to_store = post_lat.toString() + ":" + post_long.toString(); 
          client.lrange(key_to_store, 0, -1, function(err, result){
@@ -78,7 +79,7 @@ function makeSessionSecret()
               console.log(" There's already a post at " + post_address);
              //socket.emit("Loc_occupied", msg);
            } else {
-         client.rpush(key_to_store, user, content, global_lat, global_longi, post_lat, post_long, post_address, function(err, reply) {
+         client.rpush(key_to_store, user, content, global_lat, global_longi, post_lat, post_long, post_address, comments, function(err, reply) {
          client.lrange(key_to_store, 0, -1, function(err, res){
             if(res == null){
             //   socket.emit("posting error", msg);
@@ -88,7 +89,7 @@ function makeSessionSecret()
             var lat_p = res[4];
             var longi_p = res[5];
             var address_p = res[6];
-              client.select(0, function(){
+          client.select(0, function(){
              client.lrange(user, 0, -1, function(err, result){
               var curr = parseInt(result[2]);
                var updated = curr + 1;
@@ -115,6 +116,29 @@ function makeSessionSecret()
              socket.emit("show_stats", res[2]);
          });
         });
+  });
+socket.on("post_comment", function(com_con, user, key){
+  console.log("post comment event received");
+   client.select(2, function(){
+    var val = user + ":" + com_con;
+    client.rpush(key, val, function(err, respnse){
+          if(err){
+              console.log(err);
+               //emit error event TODO
+         }
+      });
+   });
+});
+  socket.on("get_comments", function(key){
+    client.select(2, function(){
+      client.lrange(key, 0, -1, function(err, response){
+        if(response == null || response.length == 0 || response == ""){
+          socket.emit("no_comments", response);
+        } else {
+          socket.emit("serve_comments", response, key);
+        }
+      });
+    });
   });
    	socket.on("map-loaded", function(){
       console.log("client " + socket.id + " map loaded ");

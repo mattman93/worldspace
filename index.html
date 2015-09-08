@@ -1,6 +1,6 @@
  <html>
  <body>
-  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Latest compiled and minified CSS -->
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -99,7 +99,14 @@
       </div>
       <br><hr>
       <div align="left">
-         <input class="btn btn-success" type="submit" style="height:35px; width:100px" align="left" value="comments" id="comments"></input>
+         <input class="comments btn btn-success" type="submit" style="height:35px; width:100px" align="left" value="comments" id="comments"></input>
+      </div>
+      <div align="left">
+         <input class="hide_comments btn btn-danger" type="submit" style="height:35px; width:130px" align="left" value="hide comments" id="hide_comments"></input>
+      </div>
+      <div id="comments_div"></div>
+           <div align="center">
+        <input class='post_comment btn btn-success' type='submit' style='height:45px; width:595px' value='post' id='post_comment'></input>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -196,6 +203,12 @@ position: relative;
    opacity: .95;
    bottom: 2px;
 }
+#hide_comments{
+  display: none;
+}
+#post_comment{
+  display: none;
+}
 </style>
 <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false&key=AIzaSyAd_qUj056TQ8botUBBwAoRY8Mm5z4O8Lk&libraries=places"></script>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
@@ -206,7 +219,7 @@ $(document).ready(function(){
   var map;
   var global_lat;
   var global_longi;
-	var socket  = io.connect();
+	var socket  = io.connect("http://localhost:8080/");
   var gpp;
   var global_origin;
   var post_address;
@@ -227,9 +240,14 @@ socket.on("send_posts", function(dataArr){
         }
       } 
     }); 
-if (!$('#view_post').is(':visible')) {
-    
-}
+$('#view_post').on('hidden.bs.modal', function (event) {
+    $("#post_user").html("");
+    $("#post_content").html("");
+    $("#comments_div").html("");
+    $(".comments").show();
+    $(".hide_comments").hide();
+    $(".post_comment").hide();
+});
 navigator.geolocation.watchPosition(function(position) {
 console.log("loc enabled");
 //enable user controls if location enabled
@@ -386,9 +404,46 @@ console.log(address);
 var id = lat + longi;
   place_perm_marker(post_position, user, content, id);
 });
-$("#comments").click(function(event){
+$(".comments").click(function(event){
 event.preventDefault();
-console.log('test');
+$(".comments").hide();
+$(".hide_comments").show();
+var key = $(".comments").data("key");
+socket.emit("get_comments", key);
+socket.on("serve_comments", function(data){
+    $("#comments_div").html("");
+   for(var i=0; i < data.length; i++){
+
+    $("#comments_div").append(data[i] + "<hr>");
+   }
+    $("#comments_div").append(" <textarea class='comment_content form-control custom-control' rows='2' cols='20' style='resize:none' id='comment_content' placeholder='write a response'></textarea>");
+    $("#post_comment").show();
+  });
+socket.on("no_comments", function(data){
+    $("#comments_div").html("<b>No comments yet</b><br><hr>");
+    $("#comments_div").data("key", key);
+    $("#comments_div").append(" <textarea class='comment_content form-control custom-control' rows='2' cols='20' style='resize:none' id='comment_content' placeholder='Be the first to comment'></textarea>");
+    $("#post_comment").show();
+  });
+});
+$(".hide_comments").click(function(event){
+  $("#comments_div").html("");
+  $("#post_comment").hide();
+  $(".comments").show();
+$(".hide_comments").hide();
+});
+$(".post_comment").click(function(event){
+  event.preventDefault();
+  console.log("COMMENT");
+  var com_con = $("#comment_content").val();
+  if(com_con.length < 1){
+    $("#error").html("write something first");
+  } else {
+    var key = $("#comments_div").data("key");
+      console.log(key);
+    socket.emit("post_comment", com_con, user, key);
+    $("#comment_content").val("");
+  }
 });
 function showPosition(position){
   if(position.coords == undefined){} else {
@@ -448,10 +503,15 @@ function place_perm_marker(position, title, content, id){
            content: contentString
                 });
    */
+   var lat_str = position.lat().toString().substr(0,8);;
+   var long_str = position.lng().toString().substr(0,8);;
+   var key = lat_str + long_str;
         marker.addListener('click', function(){
             $("#view_post").modal('show');
+            $("#comments").data("key", key);
             $("#post_user").html("Posted by " + title);
             $("#post_content").html(content);
+            console.log("button data attr : " + $("#comments").data("key"));
         });
 }
 function placeMarker(location, called_from)
