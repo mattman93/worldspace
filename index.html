@@ -1,6 +1,6 @@
  <html>
  <body>
-  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <!-- Latest compiled and minified CSS -->
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -219,7 +219,7 @@ $(document).ready(function(){
   var map;
   var global_lat;
   var global_longi;
-	var socket  = io.connect("http://localhost:8080/");
+	var socket  = io.connect();
   var gpp;
   var global_origin;
   var post_address;
