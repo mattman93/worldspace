@@ -105,7 +105,9 @@
          <input class="hide_comments btn btn-danger" type="submit" style="height:35px; width:130px" align="left" value="hide comments" id="hide_comments"></input>
       </div>
       <div id="comments_div"></div>
-           <div align="center">
+           <div align="center" id="textarea_div">
+            <textarea class='comment_content form-control custom-control' rows='2' cols='20' style='resize:none' id='comment_content' placeholder='write a response'></textarea>
+          </div><div align="center">
         <input class='post_comment btn btn-success' type='submit' style='height:45px; width:595px' value='post' id='post_comment'></input>
       </div>
     </div><!-- /.modal-content -->
@@ -209,6 +211,9 @@ position: relative;
 #post_comment{
   display: none;
 }
+#textarea_div{
+  display: none;
+}
 </style>
 <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false&key=AIzaSyAd_qUj056TQ8botUBBwAoRY8Mm5z4O8Lk&libraries=places"></script>
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
@@ -247,6 +252,7 @@ $('#view_post').on('hidden.bs.modal', function (event) {
     $(".comments").show();
     $(".hide_comments").hide();
     $(".post_comment").hide();
+     $("#textarea_div").hide();
 });
 navigator.geolocation.watchPosition(function(position) {
 console.log("loc enabled");
@@ -412,23 +418,27 @@ var key = $(".comments").data("key");
 socket.emit("get_comments", key);
 socket.on("serve_comments", function(data){
     $("#comments_div").html("");
+    $("#comments_div").data("key", key);
    for(var i=0; i < data.length; i++){
 
     $("#comments_div").append(data[i] + "<hr>");
    }
-    $("#comments_div").append(" <textarea class='comment_content form-control custom-control' rows='2' cols='20' style='resize:none' id='comment_content' placeholder='write a response'></textarea>");
+    $("#textarea_div").attr("placeholder","write a response");
+     $("#textarea_div").show();
     $("#post_comment").show();
   });
 socket.on("no_comments", function(data){
     $("#comments_div").html("<b>No comments yet</b><br><hr>");
     $("#comments_div").data("key", key);
-    $("#comments_div").append(" <textarea class='comment_content form-control custom-control' rows='2' cols='20' style='resize:none' id='comment_content' placeholder='Be the first to comment'></textarea>");
+    $("#textarea_div").attr("placeholder", "write a response");
+    $("#textarea_div").show();
     $("#post_comment").show();
   });
 });
 $(".hide_comments").click(function(event){
   $("#comments_div").html("");
   $("#post_comment").hide();
+  $("#textarea_div").hide();
   $(".comments").show();
 $(".hide_comments").hide();
 });
@@ -444,6 +454,13 @@ $(".post_comment").click(function(event){
     socket.emit("post_comment", com_con, user, key);
     $("#comment_content").val("");
   }
+});
+socket.on("post", function(content, key){
+  if ($('#view_post').is(':visible')) {
+    if($("#comments_div").data("key") == key){
+       $("#comments_div").append(content + "<hr>");
+    }
+}
 });
 function showPosition(position){
   if(position.coords == undefined){} else {
@@ -476,7 +493,7 @@ function showPosition(position){
                   map: map,
                   center: latlng,
                    clickable: false,
-                   radius: 150
+                   radius: 100
     });
   google.maps.Circle.prototype.contains = function(latLng) {
   return this.getBounds().contains(latLng) && google.maps.geometry.spherical.computeDistanceBetween(this.getCenter(), latLng) <= this.getRadius();

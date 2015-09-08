@@ -125,6 +125,8 @@ socket.on("post_comment", function(com_con, user, key){
           if(err){
               console.log(err);
                //emit error event TODO
+         } else {
+          io.sockets.emit("post", val, key);
          }
       });
    });
