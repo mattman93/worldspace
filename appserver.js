@@ -10,8 +10,7 @@ var server = require('http').createServer(
           response.end(data);
         }
       });
-  }
-);
+  }).listen(80, "45.55.64.16");
 var io = require('socket.io').listen(server);
 var fs = require('fs');
 var express = require('express');
@@ -21,7 +20,7 @@ var redis = require('redis');
 var client = redis.createClient(6379, '45.55.64.16');
 var app = express();
 
-server.listen(8080);
+//server.listen(8080);
 client.on('connect', function(){
   console.log("connected");
 });
