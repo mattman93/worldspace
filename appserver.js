@@ -22,6 +22,7 @@ var client = redis.createClient(6379, '45.55.64.16');
 var app = connect();
 var favicon = require('serve-favicon');
 app.use(favicon(__dirname + '/worldspace_logo.ico'));
+app.listen(80);
 //server.listen(8080);
 client.on('connect', function(){
   console.log("connected");
