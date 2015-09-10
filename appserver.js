@@ -8,14 +8,8 @@ var server = require('http').createServer(
             return response.end('error');
           } else {
             var _favicon = favicon(__dirname + '/worldspace_logo.ico');
-            _favicon(req, res, function onNext(err){
-              if(err){
-                return;
-              } else {
                     response.writeHead(200);
                     response.end(data);
-              }
-            })
         }
       });
 
