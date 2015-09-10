@@ -1,3 +1,4 @@
+var favicon = require('serve-favicon');
 var server = require('http').createServer(
   function(request, response){
       fs.readFile(__dirname + '/index.html',
@@ -6,10 +7,18 @@ var server = require('http').createServer(
             response.writeHead(500);
             return response.end('error');
           } else {
-          response.writeHead(200);
-          response.end(data);
+            var _favicon = favicon(__dirname + '/worldspace_logo.ico');
+            _favicon(req, res, function onNext(err){
+              if(err){
+                return;
+              } else {
+                    response.writeHead(200);
+                    response.end(data);
+              }
+            })
         }
       });
+
   }).listen(80, "45.55.64.16");
 var io = require('socket.io').listen(server);
 var fs = require('fs');
@@ -20,10 +29,6 @@ var url = require('url');
 var redis = require('redis');
 var client = redis.createClient(6379, '45.55.64.16');
 var app = connect();
-var favicon = require('serve-favicon');
-app.use(favicon(__dirname + '/worldspace_logo.ico'));
-app.listen(80);
-//server.listen(8080);
 client.on('connect', function(){
   console.log("connected");
 });
